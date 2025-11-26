@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Queue Management</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="container">
+        <h1 id="queueTitle">Queue Admin</h1>
+        <p id="queueSubtitle">Manage your queue</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- QR Code Section -->
+      <div class="card">
+        <h2 class="card-title">Queue QR Code</h2>
+        <p class="text-muted text-center mb-2">
+          Customers can scan this QR code to join the queue
+        </p>
+        <div class="qr-container">
+          <div id="qrcode"></div>
+          <p class="mt-2 text-muted" id="queueUrl"></p>
+          <button onclick="window.print()" class="btn btn-outline mt-2">
+            Print QR Code
+          </button>
+        </div>
+      </div>
+
+      <!-- Queue Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Current Token</div>
+          <div class="stat-value" id="currentTokenStat">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Waiting</div>
+          <div class="stat-value" id="waitingStat">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Served</div>
+          <div class="stat-value" id="servedStat">0</div>
+        </div>
+      </div>
+
+      <!-- Queue Members -->
+      <div class="card">
+        <h2 class="card-title">Queue Members</h2>
+        <div id="membersContainer">
+          <p class="text-muted text-center">Loading members...</p>
+        </div>
+      </div>
+
+      <!-- Back Button -->
+      <div class="text-center mt-3">
+        <a href="index.html" class="btn btn-outline">← Back to Home</a>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Page Script -->
+    <script>
+      const queueId = getUrlParameter("queueId");
+      let unsubscribeQueue = null;
+      let unsubscribeMembers = null;
+      let currentQueue = null;
+      let currentMembers = [];
+
+      if (!queueId) {
+        showAlert("No queue ID provided", "danger");
+        setTimeout(() => (window.location.href = "index.html"), 2000);
+      }
+
+      // Generate QR Code
+      function setupQRCode() {
+        const url = getQueueUrl(queueId);
+        document.getElementById("queueUrl").textContent = url;
+        generateQRCode("qrcode", url, 256);
+      }
+
+      // Update Queue Info
+      function updateQueueInfo(queue) {
+        if (!queue) {
+          showAlert("Queue not found", "danger");
+          setTimeout(() => (window.location.href = "index.html"), 2000);
+          return;
+        }
+
+        currentQueue = queue;
+        document.getElementById("queueTitle").textContent = queue.name;
+        document.getElementById("queueSubtitle").textContent = "Admin Panel";
+        document.getElementById("currentTokenStat").textContent =
+          queue.currentToken || "-";
+        document.getElementById("servedStat").textContent =
+          queue.totalServed || 0;
+      }
+
+      // Display Members
+      function displayMembers(members) {
+        currentMembers = members;
+        const container = document.getElementById("membersContainer");
+
+        const waitingMembers = members.filter((m) => m.status === "waiting");
+        document.getElementById("waitingStat").textContent =
+          waitingMembers.length;
+
+        if (members.length === 0) {
+          container.innerHTML =
+            '<p class="text-muted text-center">No members in queue yet</p>';
+          return;
+        }
+
+        // Get current serving member
+        const currentServing = getCurrentServingToken(
+          members,
+          currentQueue?.currentToken || 0
+        );
+
+        container.innerHTML = members
+          .map((member) => {
+            const isCurrent = currentServing && member.id === currentServing.id;
+            const itemClass = isCurrent
+              ? "queue-item current"
+              : member.status === "served"
+              ? "queue-item served"
+              : member.status === "skipped"
+              ? "queue-item skipped"
+              : "queue-item";
+
+            let statusBadge = "";
+            if (member.status === "served") statusBadge = " ✓ Served";
+            else if (member.status === "skipped") statusBadge = " ⊘ Skipped";
+            else if (isCurrent) statusBadge = " 👉 Current";
+
+            return `
+          <div class="${itemClass}">
+            <div class="queue-info">
+              <div class="token-number">Token #${
+                member.tokenNumber
+              }${statusBadge}</div>
+              <div class="customer-name">${member.name}</div>
+              <div class="customer-quantity">Quantity: ${member.quantity}</div>
+            </div>
+            ${
+              member.status === "waiting"
+                ? `
+              <div class="queue-actions">
+                ${
+                  isCurrent
+                    ? `
+                  <button onclick="handleServe('${member.id}')" class="btn btn-secondary btn-sm">
+                    Mark as Served
+                  </button>
+                `
+                    : ""
+                }
+                <button onclick="handleSkip('${
+                  member.id
+                }')" class="btn btn-warning btn-sm">
+                  Skip
+                </button>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+          })
+          .join("");
+      }
+
+      // Handle Serve
+      async function handleServe(memberId) {
+        if (!confirm("Mark this customer as served?")) return;
+
+        try {
+          showLoading(true);
+          await markAsServed(queueId, memberId);
+          showAlert("Customer marked as served!", "success");
+        } catch (error) {
+          showAlert("Error: " + error.message, "danger");
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      // Handle Skip
+      async function handleSkip(memberId) {
+        if (!confirm("Skip this customer?")) return;
+
+        try {
+          showLoading(true);
+          await skipToken(queueId, memberId);
+          showAlert("Customer skipped", "warning");
+        } catch (error) {
+          showAlert("Error: " + error.message, "danger");
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      // Initialize
+      if (db && queueId) {
+        setupQRCode();
+        unsubscribeQueue = listenToQueue(queueId, updateQueueInfo);
+        unsubscribeMembers = listenToQueueMembers(queueId, displayMembers);
+      }
+
+      // Cleanup
+      window.addEventListener("beforeunload", () => {
+        if (unsubscribeQueue) unsubscribeQueue();
+        if (unsubscribeMembers) unsubscribeMembers();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Queue Management System</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="container">
+        <h1>🍞 Queue Management System</h1>
+        <p>Manage your bun shop queues efficiently</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Create New Queue Section -->
+      <div class="card">
+        <h2 class="card-title">Create New Queue</h2>
+        <form id="createQueueForm">
+          <div class="form-group">
+            <label class="form-label" for="queueName">Queue Name</label>
+            <input
+              type="text"
+              id="queueName"
+              class="form-input"
+              placeholder="e.g., Morning Batch, Evening Batch"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            Create Queue
+          </button>
+        </form>
+      </div>
+
+      <!-- Active Queues Section -->
+      <div class="card">
+        <h2 class="card-title">Active Queues</h2>
+        <div id="queuesContainer">
+          <p class="text-muted text-center">Loading queues...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Page Script -->
+    <script>
+      let unsubscribeQueues = null;
+
+      // Create Queue Form Handler
+      document
+        .getElementById("createQueueForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const queueName = document.getElementById("queueName").value.trim();
+          if (!queueName) return;
+
+          try {
+            showLoading(true);
+            const queueId = await createQueue(queueName);
+            showAlert("Queue created successfully!", "success");
+            document.getElementById("queueName").value = "";
+
+            // Redirect to admin page
+            window.location.href = `admin.html?queueId=${queueId}`;
+          } catch (error) {
+            showAlert("Error creating queue: " + error.message, "danger");
+          } finally {
+            showLoading(false);
+          }
+        });
+
+      // Display Active Queues
+      function displayQueues(queues) {
+        const container = document.getElementById("queuesContainer");
+
+        if (queues.length === 0) {
+          container.innerHTML =
+            '<p class="text-muted text-center">No active queues. Create one to get started!</p>';
+          return;
+        }
+
+        container.innerHTML = queues
+          .map(
+            (queue) => `
+        <div class="queue-item">
+          <div class="queue-info">
+            <div class="customer-name">${queue.name}</div>
+            <div class="customer-quantity">
+              Current Token: #${queue.currentToken || 0} | 
+              Total Served: ${queue.totalServed || 0}
+            </div>
+          </div>
+          <div class="queue-actions">
+            <a href="admin.html?queueId=${
+              queue.id
+            }" class="btn btn-primary btn-sm">Manage</a>
+            <a href="display.html?queueId=${
+              queue.id
+            }" class="btn btn-secondary btn-sm">Display</a>
+          </div>
+        </div>
+      `
+          )
+          .join("");
+      }
+
+      // Listen to queues
+      if (db) {
+        unsubscribeQueues = listenToAllQueues(displayQueues);
+      }
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", () => {
+        if (unsubscribeQueues) unsubscribeQueues();
+      });
+    </script>
+  </body>
+</html>
