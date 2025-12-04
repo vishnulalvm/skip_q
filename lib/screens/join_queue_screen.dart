@@ -101,7 +101,13 @@ class _JoinQueueScreenState extends State<JoinQueueScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go('/');
+            }
+          },
         ),
       ),
       body: StreamBuilder<QueueModel?>(
@@ -218,7 +224,7 @@ class _JoinQueueScreenState extends State<JoinQueueScreen> {
                                   controller: _quantityController,
                                   decoration: const InputDecoration(
                                     labelText: 'Quantity',
-                                    hintText: 'How many buns?',
+                                    hintText: 'How many items?',
                                     prefixIcon: Icon(Icons.shopping_basket),
                                   ),
                                   keyboardType: TextInputType.number,

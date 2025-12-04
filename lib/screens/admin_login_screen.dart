@@ -42,7 +42,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
       if (isValid) {
         if (mounted) {
-          context.go('/admin/${widget.queueId}');
+          context.push('/admin/${widget.queueId}');
         }
       } else {
         setState(() => _error = 'Incorrect PIN');

@@ -1,11 +1,11 @@
 {
-  "name": "Bun Maska",
-  "short_name": "Bun Maska",
+  "name": "SkipQ",
+  "short_name": "SkipQ",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#6366F1",
   "theme_color": "#6366F1",
-  "description": "Queue Management System for Bun Maska",
+  "description": "Smart Queue Management System with Inventory Tracking",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [

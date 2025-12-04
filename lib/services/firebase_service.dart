@@ -96,9 +96,9 @@ class FirebaseService {
         throw Exception('Queue is full. Maximum limit reached.');
       }
 
-      // Validate against remainingBuns
+      // Validate against remaining items
       if (queue.remainingBuns != null && quantity > queue.remainingBuns!) {
-        throw Exception('Not enough buns available. Only ${queue.remainingBuns} remaining.');
+        throw Exception('Not enough items available. Only ${queue.remainingBuns} remaining.');
       }
 
       // Add member
@@ -237,7 +237,7 @@ class FirebaseService {
             'skippedAt': Timestamp.fromDate(DateTime.now()),
           });
 
-      // Restore quantity to remainingBuns if queue has bun tracking
+      // Restore quantity to remaining items if queue has item tracking
       final queueDoc = await _firestore.collection('queues').doc(queueId).get();
       if (queueDoc.exists) {
         final queueData = queueDoc.data()!;
@@ -306,14 +306,14 @@ class FirebaseService {
     });
   }
 
-  // Update remaining buns in queue
+  // Update remaining items in queue
   Future<void> updateBuns(String queueId, int quantity) async {
     try {
       await _firestore.collection('queues').doc(queueId).update({
-        'remainingBuns': quantity,
+        'remainingBuns': quantity, // Field name kept for database compatibility
       });
     } catch (e) {
-      throw Exception('Failed to update buns: $e');
+      throw Exception('Failed to update items: $e');
     }
   }
 
@@ -332,7 +332,7 @@ class FirebaseService {
         'lastIssuedToken': 0,
       };
 
-      // Reset remaining buns to total if tracking buns
+      // Reset remaining items to total if tracking items
       if (totalBuns != null) {
         updateData['remainingBuns'] = totalBuns;
       }

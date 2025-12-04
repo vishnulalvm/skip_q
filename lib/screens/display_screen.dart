@@ -191,7 +191,13 @@ class _DisplayScreenState extends State<DisplayScreen> {
                         color: Colors.white,
                         size: 32,
                       ),
-                      onPressed: () => context.go('/admin/${widget.queueId}'),
+                      onPressed: () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          context.go('/admin/${widget.queueId}');
+                        }
+                      },
                     ),
                   ),
 

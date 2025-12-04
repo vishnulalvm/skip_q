@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "975961583744",
+    "project_id": "skipq-86d8e",
+    "storage_bucket": "skipq-86d8e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975961583744:android:09dc55debc03f407cd3665",
+        "android_client_info": {
+          "package_name": "app.solidapps.skipq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzrt-z6TpcKqdaPOVAn0_uoPcK4SxrVPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975961583744:android:522eef2f3522a768cd3665",
+        "android_client_info": {
+          "package_name": "solidapps.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzrt-z6TpcKqdaPOVAn0_uoPcK4SxrVPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

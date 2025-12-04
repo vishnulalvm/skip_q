@@ -80,9 +80,9 @@ class QueueStatusScreen extends StatelessWidget {
                               if (queue.remainingBuns != null)
                                 _buildStat(
                                   context,
-                                  'Buns Left',
+                                  'Items Left',
                                   '${queue.remainingBuns}',
-                                  Icons.bakery_dining,
+                                  Icons.inventory,
                                   queue.remainingBuns == 0 ? Colors.red : Colors.brown,
                                 ),
                             ],

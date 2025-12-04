@@ -64,7 +64,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 pw.Text(joinUrl, style: const pw.TextStyle(fontSize: 18)),
                 pw.SizedBox(height: 40),
                 pw.Text(
-                  'BUN MASKA',
+                  'SkipQ',
                   style: pw.TextStyle(
                     fontSize: 24,
                     fontWeight: pw.FontWeight.bold,
@@ -147,7 +147,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'BUN MASKA',
+                    'SkipQ',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[800],
@@ -192,9 +192,9 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
-  void _showUpdateBunsDialog(int? currentBuns) {
+  void _showUpdateItemsDialog(int? currentItems) {
     final controller = TextEditingController(
-      text: currentBuns?.toString() ?? '',
+      text: currentItems?.toString() ?? '',
     );
     showDialog(
       context: context,
@@ -202,13 +202,13 @@ class _AdminScreenState extends State<AdminScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text('Update Buns'),
+        title: const Text('Update Items'),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           autofocus: true,
           decoration: InputDecoration(
-            labelText: 'Remaining Buns',
+            labelText: 'Remaining Items',
             hintText: 'Enter new quantity',
             filled: true,
             fillColor: const Color(0xFFF9FAFB),
@@ -216,7 +216,7 @@ class _AdminScreenState extends State<AdminScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            prefixIcon: const Icon(Icons.bakery_dining),
+            prefixIcon: const Icon(Icons.inventory),
           ),
         ),
         actions: [
@@ -238,7 +238,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 await _firebaseService.updateBuns(widget.queueId, quantity);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Buns updated to $quantity')),
+                    SnackBar(content: Text('Items updated to $quantity')),
                   );
                 }
               } catch (e) {
@@ -272,7 +272,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
         title: const Text('Reset Queue?'),
         content: const Text(
-          'This will reset all counts (Current, Served, Buns) to zero.\n\nMember history will be preserved.',
+          'This will reset all counts (Current, Served, Items) to zero.\n\nMember history will be preserved.',
         ),
         actions: [
           TextButton(
@@ -408,7 +408,13 @@ class _AdminScreenState extends State<AdminScreen> {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/'),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                context.go('/');
+              }
+            },
           ),
           actions: [
             IconButton(
@@ -424,7 +430,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 return PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'toggle') _toggleQueueStatus(queue);
-                    if (value == 'updateBuns') _showUpdateBunsDialog(queue.remainingBuns);
+                    if (value == 'updateItems') _showUpdateItemsDialog(queue.remainingBuns);
                     if (value == 'reset') _resetQueue();
                     if (value == 'delete') _deleteQueue();
                   },
@@ -449,12 +455,12 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                     ),
                     PopupMenuItem(
-                      value: 'updateBuns',
+                      value: 'updateItems',
                       child: Row(
                         children: [
-                          Icon(Icons.bakery_dining, color: Colors.brown[600]),
+                          Icon(Icons.inventory, color: Colors.brown[600]),
                           const SizedBox(width: 8),
-                          const Text('Update Buns'),
+                          const Text('Update Items'),
                         ],
                       ),
                     ),
@@ -577,7 +583,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 '${queue?.currentToken ?? 0}',
                               ),
                               if (queue?.remainingBuns != null)
-                                _buildMiniStat('Buns', '${queue!.remainingBuns}'),
+                                _buildMiniStat('Items', '${queue!.remainingBuns}'),
                               if (remaining != null)
                                 _buildMiniStat('Left', '$remaining'),
                             ],

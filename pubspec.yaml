@@ -1,5 +1,5 @@
 name: skip_q
-description: "Queue Management System for Bun Shop"
+description: "Smart Queue Management System with Inventory Tracking"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
@@ -49,6 +49,10 @@ dependencies:
   intl: ^0.19.0
   printing: ^5.14.2
   pdf: ^3.11.3
+
+  # Web-specific plugins (no-op on other platforms)
+  flutter_web_plugins:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
